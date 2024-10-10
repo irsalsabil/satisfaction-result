@@ -2,9 +2,7 @@ import streamlit as st
 from time import sleep
 from navigation import make_sidebar
 
-# Check if the user is logged in before making the sidebar
-if st.session_state.get("logged_in", False):
-    make_sidebar()
+make_sidebar()
 
 st.title("Welcome to Diamond Corp")
 
