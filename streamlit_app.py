@@ -1,10 +1,13 @@
 import streamlit as st
 from time import sleep
-import streamlit_authenticator as stauth
 from navigation import make_sidebar
+import streamlit_authenticator as stauth
 from data_processing import finalize_data
+import gspread
+from datetime import datetime, timedelta
+from oauth2client.service_account import ServiceAccountCredentials
 
-# Fetch the credentials and survey data
+# Fetch the credentials from the data source
 df_survey, df_creds = finalize_data()
 
 # Process `df_creds` to extract credentials in the required format
@@ -21,10 +24,10 @@ def extract_credentials(df_creds):
     }
     for index, row in df_creds.iterrows():
         credentials['credentials']['usernames'][row['username']] = {
-            'name': row['name'],      # Add the 'name' field
+            'name': row['name'],  # Add the 'name' field
             'password': row['password'],  # Password should already be hashed
-            'email': row['email'],    # Add the 'email' field
-            'unit': row['unit']       # Store the user's unit for later filtering
+            'unit': row['unit'],  # Store the user's unit for later filtering
+            'email': row['email'],  # Add the email field
         }
     return credentials
 
@@ -39,41 +42,48 @@ authenticator = stauth.Authenticate(
     credentials['cookie']['expiry_days']
 )
 
-# Display the login form and handle authentication
-authenticator.login('main')
-
-# Display the sidebar navigation only after login
+# Make the sidebar visible only if logged in
 if st.session_state.get("logged_in", False):
     make_sidebar()
 
+# Display the title of the app
 st.title("Welcome to Employee Survey 2024 Result Dashboard")
 
+# Display the login form
+authenticator.login('main')
+
 # Handle authentication status
-if st.session_state.get("authentication_status", False):
-    st.session_state.logged_in = True
-
-    # Get the unit for the logged-in user from the credentials
-    username = st.session_state["username"]
-    user_unit = credentials['credentials']['usernames'][username]['unit']
+if st.session_state.get('authentication_status'):
+    st.session_state['logged_in'] = True  # Set session state for logged in
+    st.success("Logged in successfully!")
     
-    # Welcome message and user's unit
-    st.sidebar.write(f"Welcome {st.session_state['name']} from {user_unit}!")
+    username = st.session_state['username']
 
-    # Filter survey data based on the logged-in user's unit
-    filtered_survey = df_survey[df_survey['unit'] == user_unit]
-    
-    # SECTION - SURVEY DATA
-    st.header(f'Survey Data for {user_unit}', divider='rainbow')
-    st.dataframe(filtered_survey.head())
+    # Retrieve the user's email and name from the credentials
+    user_email = credentials['credentials']['usernames'][username]['email']
+    user_name = credentials['credentials']['usernames'][username]['name']
 
-elif st.session_state.get("authentication_status") is False:
+        #ACCESS LOG
+    def log_user_access(email):
+        access_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        
+        # Setup the Google Sheets client
+        scope = ["https://spreadsheets.google.com/feeds", "https://www.googleapis.com/auth/drive"]
+        creds = ServiceAccountCredentials.from_json_keyfile_dict(st.secrets["sheets"], scope)
+        client = gspread.authorize(creds)
+        
+        try:
+            spreadsheet_id = "1qUZaGkwv7Shx3gDnSQNdYFOjuqmVtRUEgKzdrBrsovM"  # Replace with your actual spreadsheet ID
+            sheet = client.open_by_key(spreadsheet_id).sheet1  # Use open_by_key instead of open
+            sheet.append_row([email, access_time])
+        except gspread.SpreadsheetNotFound:
+            st.write("Spreadsheet not found. Please check the ID and permissions.")
+        except Exception as e:
+            st.write(f"An error occurred: {e}")
+    # Get the user's email from Streamlit's experimental_user function
+    log_user_access(user_email)
+
+elif st.session_state.get('authentication_status') is False:
     st.error("Incorrect username or password.")
-elif st.session_state.get("authentication_status") is None:
+elif st.session_state.get('authentication_status') is None:
     st.warning("Please enter your username and password to log in.")
-
-# If logged in, display the sidebar links and logout option
-if st.session_state.get("logged_in", False):
-    if st.sidebar.button("Log out", key="logout_button"):
-        st.session_state.logged_in = False
-        authenticator.logout('main')
-        st.experimental_rerun()
