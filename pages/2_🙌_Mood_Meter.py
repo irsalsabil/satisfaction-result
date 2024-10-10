@@ -40,7 +40,7 @@ authenticator = stauth.Authenticate(
 )
 
 # Display the login form
-name, authentication_status, username = authenticator.login('main')
+authenticator.login('main', fields = {'Form name': 'Welcome to Employee Survey Participation Dashboard'})
 
 # Handle authentication status
 if authentication_status:
