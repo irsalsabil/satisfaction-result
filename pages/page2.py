@@ -1,6 +1,11 @@
 from navigation import make_sidebar
 import streamlit as st
 
+st.set_page_config(
+    page_title='Mood Meter',
+    page_icon=':😊:', 
+)
+
 make_sidebar()
 
 st.write(

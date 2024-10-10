@@ -16,13 +16,15 @@ def get_current_page_name():
 
 def make_sidebar():
     with st.sidebar:
-        st.title("💎 Diamond Corp")
+        st.title(":blue_heart: KG Survey Result 2024")
         st.write("")
         st.write("")
 
         if st.session_state.get("logged_in", False):
-            st.page_link("pages/page1.py", label="Secret Company Stuff", icon="🔒")
-            st.page_link("pages/page2.py", label="More Secret Stuff", icon="🕵️")
+            st.page_link("pages/page1.py", label="Demography", icon="🏢")
+            st.page_link("pages/page2.py", label="Mood Meter", icon="😊")
+            st.page_link("pages/page3.py", label="Satisfaction", icon="👍")
+            st.page_link("pages/page4.py", label="NPS", icon="🗣️")
 
             st.write("")
             st.write("")

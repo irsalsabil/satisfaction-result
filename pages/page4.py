@@ -2,21 +2,21 @@ from navigation import make_sidebar
 import streamlit as st
 
 st.set_page_config(
-    page_title='Demography',
-    page_icon=':🏢:', 
+    page_title='NPS',
+    page_icon=':🗣️:', 
 )
 
 make_sidebar()
 
 st.write(
     """
-# 🔓 Secret Company Stuff
+# 🕵️ EVEN MORE SECRET
 
 This is a secret page that only logged-in users can see.
 
-Don't tell anyone.
+Super duper secret.
 
-For real.
+Shh....
 
 """
 )
