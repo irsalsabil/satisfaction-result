@@ -73,7 +73,7 @@ elif st.session_state.get("authentication_status") is None:
 
 # If logged in, display the sidebar links and logout option
 if st.session_state.get("logged_in", False):
-    if st.sidebar.button("Log out"):
+    if st.sidebar.button("Log out", key="logout_button"):
         st.session_state.logged_in = False
         authenticator.logout('main')
         st.experimental_rerun()
